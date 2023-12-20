@@ -6,8 +6,8 @@ import { FlexDiv } from "./styles";
 import RightMarginBox from "../common/RightMarginBox";
 import "./styles";
 import { StyledDiv } from "./styles";
-import { addTodo } from "../../../api/todos";
-import { useMutation, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
+import useTodosQuery from "../../../query/useTodosQuery";
 
 /**
  * 컴포넌트 개요 : Todo 메인 페이지에서 제목과 내용을 입력하는 영역
@@ -17,13 +17,9 @@ import { useMutation, useQueryClient } from "react-query";
  */
 function Input() {
   const queryClient = useQueryClient();
+  const { addMutation } = useTodosQuery();
 
-  const mutation = useMutation(addTodo, {
-    onSuccess: (data) => {
-      console.log("data", data);
-      queryClient.invalidateQueries("todos");
-    },
-  });
+  const { mutate: addMutate } = addMutation;
 
   // 컴포넌트 내부에서 사용할 state 2개(제목, 내용) 정의
   const [title, setTitle] = useState("");
@@ -75,7 +71,14 @@ function Input() {
 
     // todo를 추가하는 reducer 호출
     // 인자 : payload
-    mutation.mutate(newTodo);
+    // mutation.mutate(newTodo);
+
+    addMutate(newTodo, {
+      onSuccess: (data) => {
+        console.log("data", data);
+        queryClient.invalidateQueries("todos");
+      },
+    });
 
     // state 두 개를 초기화
     setTitle("");
